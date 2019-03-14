@@ -17,6 +17,15 @@ describe("Books Inventory", () => {
         .expect("Content-Type", /json/)
         .expect(books);
     });
+    test("Gets a specific book", () => {
+      return request(app)
+        .get("/books?author=George Orwell")
+        .expect(200)
+        .expect("Content-Type", /json/)
+        .expect([
+          { id: "2", title: "1984", author: "George Orwell", qty: "3" }
+        ]);
+    });
     test("Add a new book", () => {
       return request(app)
         .post(route)
@@ -38,7 +47,21 @@ describe("Books Inventory", () => {
   describe("Modifiying books", () => {
     const route = "/books/3";
 
-    test("Modify a book", () => {});
+    test("Modify a book", () => {
+      return request(app)
+        .put(route)
+        .send({ id: "3", title: "Dune", author: "Frank Herbert", qty: "50" })
+        .expect(202)
+        .expect("Content-Type", /json/)
+        .then(res => {
+          expect(res.body).toEqual({
+            id: "3",
+            title: "Dune",
+            author: "Frank Herbert",
+            qty: "50"
+          });
+        });
+    });
     test("Delete a book", () => {
       return request(app)
         .delete(route)
