@@ -55,7 +55,7 @@ router
   .delete(verifyToken, (req, res) => {
     const bookId = req.params.id;
     const result = books.filter(book => book.id !== bookId);
-
+    books = result;
     res.status(202).json(result);
   });
 
