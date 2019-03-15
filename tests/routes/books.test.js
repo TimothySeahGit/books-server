@@ -7,21 +7,21 @@ const books = [
   { id: "3", title: "Dune", author: "Frank Herbert", qty: "5" }
 ];
 //add comment
-describe("Forbids access", () => {
-  describe("No authentication", () => {});
-  describe("Wrong authentication", () => {});
-});
+// describe("Forbids access", () => {
+//   describe("No authentication", () => {});
+//   describe("Wrong authentication", () => {});
+// });
 
-describe("Allows access", () => {
-  describe("Executes successfully", () => {
-    const token = " ";
-    const route = "/api/v1/books/3";
-  });
-  describe("Executes UNsuccessfully", () => {
-    const token = " ";
-    const route = "/api/v1/books/3";
-  });
-});
+// describe("Allows access", () => {
+//   describe("Executes successfully", () => {
+//     const token = " ";
+//     const route = "/api/v1/books/3";
+//   });
+//   describe("Executes UNsuccessfully", () => {
+//     const token = " ";
+//     const route = "/api/v1/books/3";
+//   });
+// });
 
 describe("Books Inventory", () => {
   describe("Getting Books", () => {
@@ -31,18 +31,16 @@ describe("Books Inventory", () => {
         .get(route)
         .expect(200)
         .expect("Content-Type", /json/)
-        .expect(books);
-      done();
+        .expect(books)
+        .end(done);
     });
     test("Gets a specific book", done => {
       request(app)
         .get("/api/v1/books?author=George Orwell")
         .expect(200)
         .expect("Content-Type", /json/)
-        .expect([
-          { id: "2", title: "1984", author: "George Orwell", qty: "3" }
-        ]);
-      done();
+        .expect([{ id: "2", title: "1984", author: "George Orwell", qty: "3" }])
+        .end(done);
     });
     test("forbids access with no authorization", done => {
       request(app)
@@ -51,16 +49,16 @@ describe("Books Inventory", () => {
         .ok(res => res.status === 403)
         .then(res => {
           expect(res.status).toBe(403);
+          done();
         });
-      done();
     });
     test("forbids access with invalid authorization", done => {
       request(app)
         .post(route)
         .set("Authorization", "Bearer my-wrong-token")
         .send({ title: "Cookbook", author: "Jamie Oliver", qty: "1" })
-        .ok(res => res.status === 403);
-      done();
+        .ok(res => res.status === 403)
+        .end(done);
     });
 
     test("allows access with authorization token", done => {
@@ -76,8 +74,8 @@ describe("Books Inventory", () => {
             author: "Jamie Oliver",
             qty: "1"
           });
+          done();
         });
-      done();
     });
     xtest("Add a new book", () => {
       return request(app)
@@ -107,16 +105,16 @@ describe("Books Inventory", () => {
         .ok(res => res.status === 403)
         .then(res => {
           expect(res.status).toBe(403);
+          done();
         });
-      done();
     });
     test("forbids access with invalid authorization", done => {
       request(app)
         .put(route)
         .set("Authorization", "Bearer my-wrong-token")
         .send({ id: "3", title: "Dune", author: "Frank Herbert", qty: "50" })
-        .ok(res => res.status === 403);
-      done();
+        .ok(res => res.status === 403)
+        .end(done);
     });
 
     test("allows access with valid authorization", done => {
@@ -137,7 +135,7 @@ describe("Books Inventory", () => {
       done();
     });
 
-    test("Delete a book successfully", done => {
+    xtest("Delete a book successfully", done => {
       request(app)
         .delete(route)
         .set("Authorization", "Bearer my-awesome-token")
