@@ -4,6 +4,6 @@ const books = require("./routes/books");
 
 app.use(express.static("public"));
 app.use(express.json());
-app.use("/books", books);
+app.use("/api/v1/books", books);
 
 module.exports = app;
