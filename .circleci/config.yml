@@ -5,7 +5,9 @@
 version: 2
 jobs:
   build:
-    machine: true
+    docker:
+      # specify the version you desire here
+      - image: circleci/node:11.9.0
 
       # Specify service dependencies here if necessary
       # CircleCI maintains a library of pre-built images
@@ -25,7 +27,7 @@ jobs:
             - v1-dependencies-
 
       - run: yarn install
-          command: |
+          command: 
             git push https://heroku:$HEROKU_API_KEY@git.heroku.com/$HEROKU_APP_NAME.git master
 
 
