@@ -1,6 +1,8 @@
 const express = require("express");
 const router = express.Router();
 
+const Book = require("../models/book");
+
 const books = [
   { id: "1", title: "the old man and the sea", author: "i dunno", qty: "2" },
   { id: "2", title: "1984", author: "George Orwell", qty: "3" },
@@ -35,11 +37,18 @@ router
     res.json(filteredBooks);
   })
   .post(verifyToken, (req, res) => {
-    const book = req.body;
-    book.id = (books.length + 1).toString();
-    books.push(book);
-    res.status(201);
-    res.json(book);
+    // const book = req.body;
+    // book.id = (books.length + 1).toString();
+    // books.push(book);
+    // res.status(201);
+    // res.json(book);
+    const book = new Book(req.body);
+    book.save((err, book) => {
+      if (err) {
+        return res.status(500).end();
+      }
+      return res.status(201).json(book);
+    });
   });
 
 router

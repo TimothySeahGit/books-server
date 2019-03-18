@@ -1,11 +1,17 @@
 const request = require("supertest");
 const app = require("../../app");
+const mongoose = require("mongoose");
+const { MongoMemoryServer } = require("mongodb-memory-server");
 
 const books = [
   { id: "1", title: "the old man and the sea", author: "i dunno", qty: "2" },
   { id: "2", title: "1984", author: "George Orwell", qty: "3" },
   { id: "3", title: "Dune", author: "Frank Herbert", qty: "5" }
 ];
+
+// mongoose.connect("mongodb://localhost/books-db-test");
+// const db = mongoose.connection;
+
 //add comment
 // describe("Forbids access", () => {
 //   describe("No authentication", () => {});
@@ -24,6 +30,19 @@ const books = [
 // });
 
 describe("Books Inventory", () => {
+  let mongoServer;
+  beforeAll(async () => {
+    jest.setTimeout(60000);
+    mongoServer = new MongoMemoryServer();
+    const mongoUri = await mongoServer.getConnectionString();
+    await mongoose.connect(mongoUri);
+  });
+
+  afterAll(async () => {
+    mongoose.disconnect();
+    await mongoServer.stop();
+  });
+
   describe("Getting Books", () => {
     const route = "/api/v1/books";
     test("Gets all books", done => {
@@ -65,15 +84,15 @@ describe("Books Inventory", () => {
       request(app)
         .post(route)
         .set("Authorization", "Bearer my-awesome-token")
-        .send({ title: "Cookbook", author: "Jamie Oliver", qty: "1" })
+        .send({ title: "Cookbook", author: "Jamie Oliver" })
         .expect(201)
         .then(res => {
-          expect(res.body).toEqual({
-            id: expect.any(String),
-            title: "Cookbook",
-            author: "Jamie Oliver",
-            qty: "1"
-          });
+          expect(res.body).toEqual(
+            expect.objectContaining({
+              title: "Cookbook",
+              author: "Jamie Oliver"
+            })
+          );
           done();
         });
     });
