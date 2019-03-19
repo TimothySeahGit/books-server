@@ -2,10 +2,13 @@
 
 const mongoose = require("mongoose");
 
-const bookSchema = new mongoose.Schema({
-  title: String,
-  author: String
-});
+const bookSchema = new mongoose.Schema(
+  {
+    title: String,
+    author: String
+  },
+  { timestamps: true }
+);
 
 const Book = mongoose.model("Book", bookSchema);
 

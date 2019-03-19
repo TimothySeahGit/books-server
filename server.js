@@ -1,6 +1,6 @@
 const app = require("./app");
 
-const port = 8082;
+const port = process.env.PORT || 8082;
 
 //connect to db
 const mongoose = require("mongoose");

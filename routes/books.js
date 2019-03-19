@@ -25,6 +25,8 @@ const verifyToken = (req, res, next) => {
 router
   .route("/")
   .get((req, res) => {
+    const { author, title } = req.query;
+
     const queries = Object.entries(req.query); //creates an array full of arrays containing key-value pairs
     let filteredBooks = books;
     queries.forEach(([key, value]) => {
@@ -33,8 +35,21 @@ router
       );
     });
 
-    res.status(200);
-    res.json(filteredBooks);
+    if (title) {
+      return Book.or([{ title }, { author }]).then(book => res.json(book));
+    }
+    if (author) {
+      return Book.find({ author }).then(book => res.json(book));
+    }
+
+    Book.find((err, books) => {
+      if (err) {
+        return res.status(500);
+      }
+      res.status(200);
+      return res.json(books);
+    });
+    // res.json(filteredBooks);
   })
   .post(verifyToken, (req, res) => {
     // const book = req.body;
@@ -54,18 +69,32 @@ router
 router
   .route("/:id")
   .put(verifyToken, (req, res) => {
-    const bookId = req.params.id;
-    const bookReplacement = req.body;
-    const result = books.filter(book => book.id !== bookId);
-    result.push(bookReplacement);
-    res.status(202);
-    res.json(bookReplacement);
+    Book.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true },
+      (err, book) => {
+        return res.status(202).json(book);
+      }
+    );
+
+    // const bookId = req.params.id;
+    // const bookReplacement = req.body;
+    // const result = books.filter(book => book.id !== bookId);
+    // result.push(bookReplacement);
+    // res.status(202);
+    // res.json(bookReplacement);
   })
   .delete(verifyToken, (req, res) => {
-    const bookId = req.params.id;
-    const result = books.filter(book => book.id !== bookId);
-    books = result;
-    res.status(202).json(result);
+    Book.findByIdAndDelete(req.params.id, (err, book) => {
+      if (err) {
+        return res.sendStatus(400);
+      }
+      if (!book) {
+        return res.sendStatus(404);
+      }
+      return res.status(202).json(book);
+    });
   });
 
 module.exports = router;
