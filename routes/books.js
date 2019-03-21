@@ -1,7 +1,10 @@
 const express = require("express");
 const router = express.Router();
+const jwt = require("jsonwebtoken");
+const User = require("../models/user");
 
 const Book = require("../models/book");
+const secret = "SUPER SECRET";
 
 const books = [
   { id: "1", title: "the old man and the sea", author: "i dunno", qty: "2" },
@@ -9,18 +12,56 @@ const books = [
   { id: "3", title: "Dune", author: "Frank Herbert", qty: "5" }
 ];
 
-const verifyToken = (req, res, next) => {
+const verifyMiddleware = async (req, res, next) => {
   const { authorization } = req.headers;
+  console.log("error0");
   if (!authorization) {
-    res.sendStatus(403);
-  } else {
-    if (authorization === "Bearer my-awesome-token") {
-      next();
-    } else {
-      res.sendStatus(403);
-    }
+    console.log("error1");
+    return res.sendStatus(403);
+  }
+  try {
+    const token = req.headers.authorization.split("Bearer ")[1];
+    const userData = await jwt.verify(token, secret);
+    console.log(userData);
+
+    if (!userData) return res.sendStatus(403);
+    console.log("error3");
+    const user = await User.findOne({ username: userData.username });
+    console.log(user);
+    if (!user) return res.sendStatus(403);
+    console.log("error4");
+    return next();
+  } catch {
+    return res.sendStatus(403);
   }
 };
+
+// let verifyMiddleware = (req, res, next) => {
+//   let token = req.headers["authorization"]; // Express headers are auto converted to lowercase
+//   if (token.startsWith("Bearer ")) {
+//     // Remove Bearer from string
+//     token = token.slice(7, token.length);
+//   }
+
+//   if (token) {
+//     jwt.verify(token, secret, (err, decoded) => {
+//       if (err) {
+//         return res.json({
+//           success: false,
+//           message: "Token is not valid"
+//         });
+//       } else {
+//         req.decoded = decoded;
+//         next();
+//       }
+//     });
+//   } else {
+//     return res.json({
+//       success: false,
+//       message: "Auth token is not supplied"
+//     });
+//   }
+// };
 
 router
   .route("/")
@@ -51,7 +92,7 @@ router
     });
     // res.json(filteredBooks);
   })
-  .post(verifyToken, (req, res) => {
+  .post(verifyMiddleware, (req, res) => {
     // const book = req.body;
     // book.id = (books.length + 1).toString();
     // books.push(book);
@@ -68,7 +109,7 @@ router
 
 router
   .route("/:id")
-  .put(verifyToken, (req, res) => {
+  .put(verifyMiddleware, (req, res) => {
     Book.findByIdAndUpdate(
       req.params.id,
       req.body,
@@ -85,7 +126,7 @@ router
     // res.status(202);
     // res.json(bookReplacement);
   })
-  .delete(verifyToken, (req, res) => {
+  .delete(verifyMiddleware, (req, res) => {
     Book.findByIdAndDelete(req.params.id, (err, book) => {
       if (err) {
         return res.sendStatus(400);

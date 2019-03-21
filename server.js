@@ -7,7 +7,11 @@ if (process.env.NODE_ENV !== "production") {
 const port = process.env.PORT;
 const mongodbUri = process.env.MONGODB_URI;
 
-mongoose.connect(mongodbUri);
+mongoose.connect(mongodbUri, {
+  useCreateIndex: true,
+  useNewUrlParser: true,
+  useFindAndModify: false
+});
 
 var db = mongoose.connection;
 db.on("error", () => {

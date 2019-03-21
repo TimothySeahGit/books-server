@@ -12,13 +12,26 @@ const books = [
   { id: "3", title: "Dune", author: "Frank Herbert", qty: "5" }
 ];
 
+jest.mock("jsonwebtoken");
+const jwt = require("jsonwebtoken");
+
+jest.mock("../../models/user.js");
+const User = require("../../models/user.js");
+
+// jest.mock(verifyMiddleware);
+// const verifyMiddleware = require("")
+
 describe("Books Inventory", () => {
   let mongoServer;
   beforeAll(async () => {
     jest.setTimeout(60000);
     mongoServer = new MongoMemoryServer();
     const mongoUri = await mongoServer.getConnectionString();
-    mongoose.connect(mongoUri);
+    mongoose.connect(mongoUri, {
+      useCreateIndex: true,
+      useNewUrlParser: true,
+      useFindAndModify: false
+    });
     // const createdBooks = await Promise.all(
     //   books.map(async book => {
     //     const createdBook = await Book.create(book); // Model.create is a mongoose API on the Model
@@ -48,10 +61,12 @@ describe("Books Inventory", () => {
     );
 
     afterEach(async () => {
+      jwt.verify.mockReset();
+      User.findOne.mockReset();
       await db.dropCollection("books");
     });
 
-    test.only("Gets all books", () => {
+    test("Gets all books", () => {
       const expectedBooks = [
         {
           title: "the old man and the sea",
@@ -114,6 +129,8 @@ describe("Books Inventory", () => {
     });
 
     test("Creates a new book with authorization token", async () => {
+      jwt.verify.mockResolvedValueOnce({ username: "123" });
+      User.findOne.mockResolvedValueOnce({ username: "123" });
       const res = await request(app)
         .post(route)
         .set("Authorization", "Bearer my-awesome-token")
@@ -162,7 +179,11 @@ describe("Books Inventory", () => {
           { title: "Dune", author: "Frank Herbert" }
         ])
     );
-
+    afterEach(async () => {
+      jwt.verify.mockReset();
+      User.findOne.mockReset();
+      await db.dropCollection("books");
+    });
     // afterEach(() => {
     //   db.dropCollection("books");
     // });
@@ -187,6 +208,9 @@ describe("Books Inventory", () => {
     });
 
     test("allows access with valid authorization", async () => {
+      jwt.verify.mockResolvedValueOnce({ username: "123" });
+      User.findOne.mockResolvedValueOnce({ username: "123" });
+
       const { _id } = await Book.findOne({ title: "1984" });
       await request(app)
         .put(route(_id))
@@ -207,6 +231,9 @@ describe("Books Inventory", () => {
     });
 
     test("Delete a book successfully", async () => {
+      jwt.verify.mockResolvedValueOnce({ username: "123" });
+      User.findOne.mockResolvedValueOnce({ username: "123" });
+
       const { _id } = await Book.findOne({ title: "1984" });
       await request(app)
         .delete(route(_id))
